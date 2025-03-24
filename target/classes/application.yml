@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:${Postgres.DATABASE_PUBLIC_URL}
+    url: ${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -14,10 +14,6 @@ spring:
       validation-timeout: 5000
       max-lifetime: 1200000
       auto-commit: true
-      data-source-properties:
-        useSSL: true
-        sslmode: require
-        stringtype: unspecified
 
   jpa:
     database: POSTGRESQL
