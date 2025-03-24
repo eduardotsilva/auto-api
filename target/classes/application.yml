@@ -1,15 +1,15 @@
 server:
-  port: ${PORT:8080}
+  port: 8080
 
 spring:
   datasource:
-    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
-    username: ${PGUSER}
-    password: ${PGPASSWORD}
+    url: jdbc:postgresql://containers-us-west-xxx.railway.app:5432/railway
+    username: postgres
+    password: FGaoytNGrTNAaJyhGdSJdyObvZpMEimp
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 2
+      maximum-pool-size: 5
       minimum-idle: 1
       idle-timeout: 300000
       connection-timeout: 20000
@@ -17,9 +17,8 @@ spring:
       max-lifetime: 1200000
       auto-commit: true
       data-source-properties:
-        useSSL: true
-        sslmode: require
         ssl: true
+        sslmode: require
         stringtype: unspecified
 
   jpa:
@@ -31,7 +30,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
             non_contextual_creation: true
