@@ -4,12 +4,12 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
       - "5001:5001"
     environment:
-      - DATABASE_URL=jdbc:postgresql://db:5432/rastreamento
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_URL=${DATABASE_URL}
+      - PGUSER=${PGUSER:-postgres}
+      - PGPASSWORD=${PGPASSWORD:-postgres}
     depends_on:
       - db
 
@@ -17,8 +17,8 @@ services:
     image: postgres:15
     environment:
       - POSTGRES_DB=rastreamento
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=${PGUSER:-postgres}
+      - POSTGRES_PASSWORD=${PGPASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
