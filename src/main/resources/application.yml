@@ -3,7 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DATABASE_URL}
+    url: jdbc:${DATABASE_PUBLIC_URL}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
