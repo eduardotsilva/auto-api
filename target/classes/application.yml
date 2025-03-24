@@ -3,16 +3,19 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}?socketTimeout=30&connectTimeout=30&loginTimeout=30&ssl=true&sslmode=require
     username: ${PGUSER}
     password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 3
       minimum-idle: 1
-      connection-timeout: 20000
-      connection-test-query: SELECT 1
+      idle-timeout: 30000
+      connection-timeout: 30000
       validation-timeout: 30000
+      max-lifetime: 60000
+      connection-test-query: SELECT 1
+      pool-name: HikariPool-Rastreamento
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -25,6 +28,8 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
+        connection:
+          provider_disables_autocommit: false
     open-in-view: false
   sql:
     init:
