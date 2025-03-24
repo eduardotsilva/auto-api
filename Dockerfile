@@ -2,7 +2,7 @@ FROM openjdk:21-slim
 
 WORKDIR /app
 
-COPY target/auto-api-0.0.1-SNAPSHOT.jar app.jar
+COPY target/auto-api-0.0.2.jar app.jar
 
 # Não precisamos definir as variáveis de ambiente aqui, pois o Railway as fornece
 EXPOSE 8080
