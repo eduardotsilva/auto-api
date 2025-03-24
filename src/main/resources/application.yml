@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/railway}
-    username: ${PGUSER:postgres}
-    password: ${PGPASSWORD:postgres}
+    url: jdbc:postgresql://postgres.railway.internal:5432/railway
+    username: postgres
+    password: FGaoytNGrTNAaJyhGdSJdyObvZpMEimp
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
