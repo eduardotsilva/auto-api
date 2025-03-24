@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:${DATABASE_URL}
-    username: ${PGUSER}
+    url: jdbc:postgresql://${PGHOST:postgres.railway.internal}:${PGPORT:5432}/${PGDATABASE:railway}
+    username: ${PGUSER:postgres}
     password: ${PGPASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
