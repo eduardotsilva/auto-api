@@ -1,0 +1,6 @@
+com\rastreamento\domain\service\RastreamentoService.class
+com\rastreamento\infrastructure\controller\RastreamentoController.class
+com\rastreamento\domain\model\Localizacao.class
+com\rastreamento\domain\repository\LocalizacaoRepository.class
+com\rastreamento\AutoApiApplication.class
+com\rastreamento\infrastructure\server\RastreadorTcpServer.class
