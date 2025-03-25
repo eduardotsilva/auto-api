@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Rastreamento em Tempo Real</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        #map {
+            height: 800px;
+            width: 100%;
+        }
+        .vehicle-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="vehicle-info">
+        <h3>Veículos Online: <span id="vehicleCount">0</span></h3>
+    </div>
+
+    <script th:inline="javascript">
+        // Inicializa o mapa
+        var map = L.map('map').setView([-23.5505, -46.6333], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Armazena os marcadores dos veículos
+        var vehicles = {};
+
+        // Conecta ao WebSocket
+        var socket = new SockJS('/ws-rastreamento');
+        var stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function(frame) {
+            console.log('Conectado ao WebSocket');
+            stompClient.subscribe('/topic/locations', function(message) {
+                updateVehicleLocation(JSON.parse(message.body));
+            });
+        });
+
+        function updateVehicleLocation(data) {
+            // Remove marcador antigo se existir
+            if (vehicles[data.vehicleId]) {
+                map.removeLayer(vehicles[data.vehicleId]);
+            }
+
+            // Cria novo marcador
+            var marker = L.marker([data.latitude, data.longitude])
+                .bindPopup('Veículo: ' + data.vehicleId + '<br>Velocidade: ' + data.speed + ' km/h');
+            
+            vehicles[data.vehicleId] = marker;
+            marker.addTo(map);
+
+            // Atualiza contador de veículos
+            document.getElementById('vehicleCount').textContent = Object.keys(vehicles).length;
+        }
+    </script>
+</body>
+</html> 

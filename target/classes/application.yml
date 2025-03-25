@@ -1,22 +1,40 @@
 server:
-  port: ${PORT:8080}
+  port: 8080
 
 spring:
-  main:
-    web-application-type: none
   datasource:
-    url: jdbc:postgresql://postgres.railway.internal:5432/railway
+    url: jdbc:postgresql://localhost:5432/rastreamento
     username: postgres
-    password: FGaoytNGrTNAaJyhGdSJdyObvZpMEimp
+    password: postgres
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 2
-      minimum-idle: 1
+      maximum-pool-size: 20
+      minimum-idle: 5
       idle-timeout: 300000
       connection-timeout: 20000
       validation-timeout: 5000
-
+      max-lifetime: 1200000
+      auto-commit: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    template:
+      exchange: exchange-localizacoes
+      routing-key: atualizacao.localizacao
+    listener:
+      simple:
+        concurrency: 10
+        max-concurrency: 20
+        prefetch: 100
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 2
+          max-interval: 10000
   jpa:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -30,10 +48,18 @@ spring:
           lob:
             non_contextual_creation: true
     open-in-view: false
-
   sql:
     init:
       mode: never
+  profiles:
+    active: dev
+
+tcp:
+  server:
+    port: 8090
+    thread-pool-size: 100
+    batch-size: 100
+    batch-interval: 1000
 
 logging:
   level:
@@ -44,4 +70,4 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: DEBUG
     org.hibernate: INFO
-    org.postgresql: DEBUG
+    org.postgresql: DEBUG 
