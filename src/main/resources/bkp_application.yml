@@ -1,13 +1,10 @@
-server:
-  port: ${PORT:8080}
-
 spring:
-  main:
-    web-application-type: none
+  profiles:
+    active: dev
   datasource:
-    url: jdbc:postgresql://postgres.railway.internal:5432/railway
-    username: postgres
-    password: FGaoytNGrTNAaJyhGdSJdyObvZpMEimp
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/railway}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
@@ -16,16 +13,18 @@ spring:
       idle-timeout: 300000
       connection-timeout: 20000
       validation-timeout: 5000
+      max-lifetime: 1200000
+      auto-commit: true
 
   jpa:
     database: POSTGRESQL
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         jdbc:
           lob:
             non_contextual_creation: true
@@ -35,13 +34,16 @@ spring:
     init:
       mode: never
 
+server:
+  port: ${PORT:8080}
+
 logging:
   level:
     root: INFO
     org.springframework: INFO
-    com.rastreamento: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    com.zaxxer.hikari: DEBUG
+    com.rastreamento: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    com.zaxxer.hikari: INFO
     org.hibernate: INFO
-    org.postgresql: DEBUG
+    org.postgresql: INFO

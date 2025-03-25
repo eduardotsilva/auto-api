@@ -1,21 +1,21 @@
 server:
-  port: ${PORT:8080}
+  port: 8080
 
 spring:
-  main:
-    web-application-type: none
   datasource:
-    url: jdbc:postgresql://postgres.railway.internal:5432/railway
+    url: jdbc:postgresql://localhost:5432/rastreamento
     username: postgres
-    password: FGaoytNGrTNAaJyhGdSJdyObvZpMEimp
+    password: postgres
     driver-class-name: org.postgresql.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 2
+      maximum-pool-size: 5
       minimum-idle: 1
       idle-timeout: 300000
       connection-timeout: 20000
       validation-timeout: 5000
+      max-lifetime: 1200000
+      auto-commit: true
 
   jpa:
     database: POSTGRESQL
@@ -44,4 +44,4 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.zaxxer.hikari: DEBUG
     org.hibernate: INFO
-    org.postgresql: DEBUG
+    org.postgresql: DEBUG 

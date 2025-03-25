@@ -2,6 +2,8 @@ server:
   port: ${PORT:8080}
 
 spring:
+  main:
+    web-application-type: none
   datasource:
     url: jdbc:postgresql://postgres.railway.internal:5432/railway
     username: postgres
