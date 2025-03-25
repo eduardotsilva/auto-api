@@ -23,7 +23,7 @@ public class RastreadorTcpServer {
     private final RastreamentoService rastreamentoService;
     private ServerSocket serverSocket;
     private ExecutorService executorService;
-    private static final int PORT = 5432;
+    private static final int PORT = 5001;
     private volatile boolean running = true;
 
     @PostConstruct
