@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class TesteClienteTCP {
     public static void main(String[] args) {
-        try (Socket socket = new Socket("localhost", 5001);
+        try (Socket socket = new Socket("centerbeam.proxy.rlwy.net", 38254);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              Scanner scanner = new Scanner(System.in)) {
             
