@@ -1,6 +1,7 @@
 package com.rastreamento.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -20,6 +22,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleCredenciaisInvalidasException(
             CredenciaisInvalidasException ex,
             HttpServletRequest request) {
+        
+        log.error("Erro de credenciais inválidas:", ex);
         
         ErroResponse erro = ErroResponse.builder()
                 .timestamp(LocalDateTime.now())
@@ -37,6 +41,8 @@ public class GlobalExceptionHandler {
             EmailJaCadastradoException ex,
             HttpServletRequest request) {
         
+        log.error("Erro de email já cadastrado:", ex);
+        
         ErroResponse erro = ErroResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.CONFLICT.value())
@@ -52,6 +58,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
+        
+        log.error("Erro de validação:", ex);
         
         List<String> details = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -75,6 +83,8 @@ public class GlobalExceptionHandler {
             BadCredentialsException ex,
             HttpServletRequest request) {
         
+        log.error("Erro de credenciais inválidas:", ex);
+        
         ErroResponse erro = ErroResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -90,6 +100,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleGlobalException(
             Exception ex,
             HttpServletRequest request) {
+        
+        log.error("Erro interno do servidor:", ex);
         
         ErroResponse erro = ErroResponse.builder()
                 .timestamp(LocalDateTime.now())

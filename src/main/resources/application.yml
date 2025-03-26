@@ -109,6 +109,12 @@ logging:
     org.postgresql: DEBUG
     org.springframework.security: DEBUG
 
+# Configuração JWT
+# A chave secreta está codificada em Base64 e tem 256 bits de comprimento
+# Para gerar uma nova chave: 
+# 1. Use um gerador de chaves seguro para criar uma chave de 256 bits
+# 2. Codifique a chave em Base64
+# 3. Substitua o valor abaixo ou defina a variável de ambiente JWT_SECRET
 jwt:
-  secret: ${JWT_SECRET:your-256-bit-secret}
+  secret: ${JWT_SECRET:566B597033733676397924423F4528482B4D6251655468576D5A7134743777217A25432A462D4A614E635266556A586E3272357538782F413F4428472B4B6250}
   expiration: ${JWT_EXPIRATION:86400000} 

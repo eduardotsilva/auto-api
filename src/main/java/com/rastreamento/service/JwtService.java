@@ -5,6 +5,7 @@ import com.rastreamento.model.Usuario.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +20,14 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    /**
+     * Chave secreta codificada em Base64.
+     * A chave deve ter pelo menos 256 bits (32 bytes) antes da codificação.
+     * Exemplo de como gerar uma nova chave:
+     * 1. Gere 32 bytes aleatórios seguros
+     * 2. Codifique em Base64
+     * 3. Defina no application.yml ou na variável de ambiente JWT_SECRET
+     */
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -26,7 +35,8 @@ public class JwtService {
     private long jwtExpiration;
 
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+        // Decodifica a chave de Base64 para bytes antes de usar
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
