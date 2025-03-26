@@ -1,7 +1,6 @@
 package com.rastreamento.tcp;
 
 import com.rastreamento.model.DadosLocalizacao;
-import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class ServidorTCP {
 
     @Value("${tcp.server.port:8090}")
@@ -39,6 +37,9 @@ public class ServidorTCP {
     @Value("${tcp.server.batch-interval:1000}")
     private long intervaloLote;
 
+    @Value("${tcp.server.queue-capacity:10000}")
+    private int capacidadeFila;
+
     // Região do Brasil (aproximadamente)
     private static final double LAT_MIN = -33.0; // Extremo sul do Brasil
     private static final double LAT_MAX = 5.0;   // Extremo norte do Brasil
@@ -46,17 +47,39 @@ public class ServidorTCP {
     private static final double LON_MAX = -34.0; // Extremo leste do Brasil
 
     private ServerSocket servidorSocket;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private ThreadPoolExecutor executorService;
     private final RabbitTemplate rabbitTemplate;
     private volatile boolean executando = true;
-    private final BlockingQueue<DadosLocalizacao> filaMensagens = new LinkedBlockingQueue<>();
+    private BlockingQueue<DadosLocalizacao> filaMensagens;
     private ScheduledExecutorService agendador;
+    private final List<Socket> conexoesAtivas = new CopyOnWriteArrayList<>();
+
+    public ServidorTCP(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     @PostConstruct
     public void iniciar() {
+        this.filaMensagens = new LinkedBlockingQueue<>(capacidadeFila);
+        
+        // Configuração do pool de threads com política de rejeição
+        this.executorService = new ThreadPoolExecutor(
+            tamanhoPoolThreads / 2,    // núcleo
+            tamanhoPoolThreads,        // máximo
+            60L,                       // tempo ocioso
+            TimeUnit.SECONDS,          // unidade de tempo
+            new ArrayBlockingQueue<>(tamanhoPoolThreads * 2), // fila de trabalhos
+            new ThreadPoolExecutor.CallerRunsPolicy()         // política de rejeição
+        );
+
         // Inicia o agendador para processar mensagens em lote
-        agendador = Executors.newScheduledThreadPool(1);
+        agendador = Executors.newScheduledThreadPool(2); // 2 threads para processamento em lote
+        
+        // Agenda o processamento de lotes
         agendador.scheduleAtFixedRate(this::processarLote, 0, intervaloLote, TimeUnit.MILLISECONDS);
+        
+        // Agenda o monitoramento de métricas
+        agendador.scheduleAtFixedRate(this::reportarMetricas, 0, 60, TimeUnit.SECONDS);
 
         // Inicia o servidor TCP
         executorService.submit(() -> {
@@ -67,6 +90,7 @@ public class ServidorTCP {
                 while (executando) {
                     Socket socketCliente = servidorSocket.accept();
                     socketCliente.setSoTimeout(30000); // 30 segundos
+                    conexoesAtivas.add(socketCliente);
                     processarCliente(socketCliente);
                 }
             } catch (Exception e) {
@@ -75,6 +99,16 @@ public class ServidorTCP {
                 }
             }
         });
+    }
+
+    private void reportarMetricas() {
+        System.out.println("\n=== Métricas do Servidor TCP ===");
+        System.out.println("Conexões ativas: " + conexoesAtivas.size());
+        System.out.println("Tamanho da fila de mensagens: " + filaMensagens.size());
+        System.out.println("Thread pool - Ativos: " + executorService.getActiveCount() + 
+                         ", Pool size: " + executorService.getPoolSize() + 
+                         ", Máximo: " + executorService.getLargestPoolSize());
+        System.out.println("==============================\n");
     }
 
     private boolean validarCoordenadas(double lat, double lon) {
@@ -92,7 +126,7 @@ public class ServidorTCP {
                     new InputStreamReader(socketCliente.getInputStream()))) {
                 
                 String linha;
-                while ((linha = leitor.readLine()) != null) {
+                while ((linha = leitor.readLine()) != null && executando) {
                     try {
                         String[] dados = linha.split(",");
                         if (dados.length >= 4) {
@@ -116,22 +150,22 @@ public class ServidorTCP {
                             localizacao.setDataHora(LocalDateTime.now());
                             localizacao.setAtivo(true);
 
-                            System.out.println("Processando localização: " + localizacao);
-                            
-                            // Adiciona à fila de mensagens
-                            filaMensagens.offer(localizacao);
+                            // Tenta adicionar à fila com timeout
+                            if (!filaMensagens.offer(localizacao, 5, TimeUnit.SECONDS)) {
+                                System.err.println("Fila de mensagens cheia, descartando localização: " + localizacao);
+                            }
                         }
                     } catch (Exception e) {
                         System.err.println("Erro ao processar mensagem: " + e.getMessage());
-                        e.printStackTrace();
                     }
                 }
             } catch (Exception e) {
-                if (!socketCliente.isClosed()) {
+                if (!socketCliente.isClosed() && executando) {
                     e.printStackTrace();
                 }
             } finally {
                 try {
+                    conexoesAtivas.remove(socketCliente);
                     socketCliente.close();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -145,17 +179,48 @@ public class ServidorTCP {
         filaMensagens.drainTo(lote, tamanhoLote);
 
         if (!lote.isEmpty()) {
-            // Envia o lote para o RabbitMQ
-            lote.forEach(localizacao -> {
-                System.out.println("Enviando para RabbitMQ: " + localizacao);
-                rabbitTemplate.convertAndSend(exchange, chaveRoteamento, localizacao);
-            });
+            int tentativas = 0;
+            boolean sucesso = false;
+            
+            while (!sucesso && tentativas < 3 && executando) {
+                try {
+                    // Envia o lote para o RabbitMQ
+                    lote.forEach(localizacao -> {
+                        rabbitTemplate.convertAndSend(exchange, chaveRoteamento, localizacao);
+                    });
+                    sucesso = true;
+                } catch (Exception e) {
+                    tentativas++;
+                    System.err.println("Erro ao enviar lote para RabbitMQ (tentativa " + tentativas + "/3): " + e.getMessage());
+                    try {
+                        Thread.sleep(1000 * tentativas); // Backoff exponencial
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+
+            if (!sucesso) {
+                System.err.println("Falha ao enviar lote após 3 tentativas. Mensagens serão perdidas.");
+            }
         }
     }
 
     @PreDestroy
     public void parar() {
         executando = false;
+        
+        // Fecha todas as conexões ativas
+        for (Socket socket : conexoesAtivas) {
+            try {
+                socket.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        conexoesAtivas.clear();
+
         try {
             if (servidorSocket != null && !servidorSocket.isClosed()) {
                 servidorSocket.close();
@@ -175,6 +240,9 @@ public class ServidorTCP {
                 Thread.currentThread().interrupt();
             }
         }
+
+        // Processa mensagens restantes antes de desligar
+        processarLote();
 
         executorService.shutdown();
         try {

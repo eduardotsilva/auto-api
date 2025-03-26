@@ -5,12 +5,19 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Random;
 import java.util.Locale;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TesteClienteTCP {
 
     private static final String HOST = "localhost";
     private static final int PORTA = 8090;
     private static final int INTERVALO_ENVIO_MS = 2000;
+    private static final int MAX_TENTATIVAS_RECONEXAO = 5;
+    private static final int INTERVALO_RECONEXAO_MS = 5000;
+    private static final int TAMANHO_MAXIMO_FILA = 1000;
 
     // Região do Brasil (aproximadamente)
     private static final double LAT_MIN = -33.0; // Extremo sul do Brasil
@@ -66,6 +73,100 @@ public class TesteClienteTCP {
         }
     }
 
+    private static class ClienteTCP implements AutoCloseable {
+        private Socket socket;
+        private PrintWriter writer;
+        private final BlockingQueue<String> filaMensagens;
+        private final AtomicBoolean executando;
+        private final Thread threadEnvio;
+
+        public ClienteTCP() {
+            this.filaMensagens = new LinkedBlockingQueue<>(TAMANHO_MAXIMO_FILA);
+            this.executando = new AtomicBoolean(true);
+            this.threadEnvio = new Thread(this::processarMensagens);
+            this.threadEnvio.start();
+        }
+
+        private void conectar() throws Exception {
+            int tentativas = 0;
+            while (tentativas < MAX_TENTATIVAS_RECONEXAO && executando.get()) {
+                try {
+                    socket = new Socket(HOST, PORTA);
+                    writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+                    System.out.println("Conectado ao servidor TCP na porta " + PORTA);
+                    return;
+                } catch (Exception e) {
+                    tentativas++;
+                    System.err.println("Tentativa " + tentativas + " de " + MAX_TENTATIVAS_RECONEXAO + 
+                                     " falhou. Aguardando " + INTERVALO_RECONEXAO_MS + "ms para reconectar...");
+                    Thread.sleep(INTERVALO_RECONEXAO_MS);
+                }
+            }
+            throw new Exception("Não foi possível conectar ao servidor após " + MAX_TENTATIVAS_RECONEXAO + " tentativas");
+        }
+
+        public void enviarMensagem(String mensagem) {
+            if (!filaMensagens.offer(mensagem)) {
+                System.err.println("Fila de mensagens cheia, descartando mensagem: " + mensagem);
+            }
+        }
+
+        private void processarMensagens() {
+            while (executando.get()) {
+                try {
+                    if (socket == null || socket.isClosed()) {
+                        conectar();
+                    }
+
+                    String mensagem = filaMensagens.poll(1, TimeUnit.SECONDS);
+                    if (mensagem != null) {
+                        try {
+                            writer.println(mensagem);
+                            if (writer.checkError()) {
+                                throw new Exception("Erro ao enviar mensagem");
+                            }
+                            System.out.println("Enviado: " + mensagem);
+                        } catch (Exception e) {
+                            System.err.println("Erro ao enviar mensagem: " + e.getMessage());
+                            filaMensagens.offer(mensagem); // Recoloca a mensagem na fila
+                            fecharConexao();
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    System.err.println("Erro na thread de envio: " + e.getMessage());
+                    try {
+                        Thread.sleep(INTERVALO_RECONEXAO_MS);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void fecharConexao() {
+            try {
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (Exception e) {
+                System.err.println("Erro ao fechar conexão: " + e.getMessage());
+            }
+            socket = null;
+            writer = null;
+        }
+
+        @Override
+        public void close() {
+            executando.set(false);
+            threadEnvio.interrupt();
+            fecharConexao();
+        }
+    }
+
     public static void main(String[] args) {
         // Força o uso do ponto como separador decimal
         Locale.setDefault(Locale.US);
@@ -76,11 +177,7 @@ public class TesteClienteTCP {
             veiculos[i] = new Veiculo("VEICULO" + (i + 1));
         }
 
-        try (Socket socket = new Socket(HOST, PORTA);
-             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true)) {
-
-            System.out.println("Conectado ao servidor TCP na porta " + PORTA);
-
+        try (ClienteTCP cliente = new ClienteTCP()) {
             while (true) {
                 for (Veiculo veiculo : veiculos) {
                     veiculo.mover();
@@ -89,13 +186,11 @@ public class TesteClienteTCP {
                         veiculo.lat,
                         veiculo.lon,
                         veiculo.velocidade);
-                    writer.println(mensagem);
-                    System.out.println("Enviado: " + mensagem);
+                    cliente.enviarMensagem(mensagem);
                 }
 
                 Thread.sleep(INTERVALO_ENVIO_MS);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
