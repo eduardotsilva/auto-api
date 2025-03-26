@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface DadosLocalizacaoRepository extends JpaRepository<DadosLocalizacao, Long> {
-    Optional<DadosLocalizacao> findTop1ByIdVeiculoOrderByDataHoraDesc(String idVeiculo);
+    Optional<DadosLocalizacao> findTop1ByImeiOrderByDataHoraDesc(String imei);
     
-    @Query(value = "SELECT * FROM dados_localizacao WHERE id_veiculo = :idVeiculo ORDER BY data_hora DESC LIMIT :limit", nativeQuery = true)
-    List<DadosLocalizacao> findTopByIdVeiculoOrderByDataHoraDesc(@Param("idVeiculo") String idVeiculo, @Param("limit") int limit);
+    @Query(value = "SELECT * FROM localizacoes WHERE imei = :imei ORDER BY data_hora DESC LIMIT :limit", nativeQuery = true)
+    List<DadosLocalizacao> findTopByImeiOrderByDataHoraDesc(@Param("imei") String imei, @Param("limit") int limit);
 } 

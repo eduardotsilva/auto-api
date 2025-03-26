@@ -143,12 +143,14 @@ public class ServidorTCP {
                             }
 
                             DadosLocalizacao localizacao = new DadosLocalizacao();
-                            localizacao.setIdVeiculo(idVeiculo);
+                            localizacao.setImei(idVeiculo);
                             localizacao.setLatitude(latitude);
                             localizacao.setLongitude(longitude);
                             localizacao.setVelocidade(velocidade);
                             localizacao.setDataHora(LocalDateTime.now());
                             localizacao.setAtivo(true);
+                            localizacao.setStatus("A"); // Status válido por padrão
+                            localizacao.setDirecao("0"); // Direção padrão
 
                             // Tenta adicionar à fila com timeout
                             if (!filaMensagens.offer(localizacao, 5, TimeUnit.SECONDS)) {

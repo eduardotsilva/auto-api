@@ -31,12 +31,12 @@ public class ServicoLocalizacao {
     }
 
     public DadosLocalizacao buscarLocalizacaoAtual(String imei) {
-        return repositorio.findTop1ByIdVeiculoOrderByDataHoraDesc(imei)
+        return repositorio.findTop1ByImeiOrderByDataHoraDesc(imei)
                 .orElseThrow(() -> new RuntimeException("Rastreador não encontrado: " + imei));
     }
 
     public List<DadosLocalizacao> buscarHistorico(String imei, int quantidade) {
-        return repositorio.findTopByIdVeiculoOrderByDataHoraDesc(imei, quantidade);
+        return repositorio.findTopByImeiOrderByDataHoraDesc(imei, quantidade);
     }
 
     public void iniciarRastreamento(String imei) {
