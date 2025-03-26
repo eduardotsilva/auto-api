@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/rastreadores")
+@RequestMapping("/rastreadores")
 @RequiredArgsConstructor
 @Tag(name = "Rastreamento", description = "Endpoints para gerenciamento de rastreadores")
 @SecurityRequirement(name = "Bearer Authentication")
