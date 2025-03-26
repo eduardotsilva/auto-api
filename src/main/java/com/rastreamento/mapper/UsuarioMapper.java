@@ -10,6 +10,10 @@ import org.mapstruct.Mapping;
 public interface UsuarioMapper {
     
     @Mapping(target = "senha", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "ativo", constant = "true")
+    @Mapping(target = "dataCriacao", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "ultimoAcesso", expression = "java(java.time.LocalDateTime.now())")
     Usuario toEntity(UsuarioDTO dto);
     
     UsuarioRespostaDTO toRespostaDTO(Usuario usuario);
