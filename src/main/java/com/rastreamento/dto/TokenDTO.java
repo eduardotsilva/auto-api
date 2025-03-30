@@ -1,6 +1,6 @@
 package com.rastreamento.dto;
 
-import com.rastreamento.model.Usuario.Role;
+import com.rastreamento.model.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "DTO com informações do token de autenticação")

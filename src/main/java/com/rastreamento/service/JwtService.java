@@ -1,7 +1,7 @@
 package com.rastreamento.service;
 
 import com.rastreamento.model.Usuario;
-import com.rastreamento.model.Usuario.Role;
+import com.rastreamento.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

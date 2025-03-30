@@ -14,6 +14,8 @@ public interface UsuarioMapper {
     @Mapping(target = "ativo", constant = "true")
     @Mapping(target = "dataCriacao", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "ultimoAcesso", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "veiculos", ignore = true)
+    @Mapping(target = "authorities", ignore = true)
     Usuario toEntity(UsuarioDTO dto);
     
     UsuarioRespostaDTO toRespostaDTO(Usuario usuario);

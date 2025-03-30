@@ -1,102 +1,73 @@
 package com.rastreamento.controller;
 
-import com.rastreamento.model.DadosLocalizacao;
-import com.rastreamento.service.ServicoLocalizacao;
+import com.rastreamento.dto.RastreadorDTO;
+import com.rastreamento.service.RastreadorService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/rastreadores")
 @RequiredArgsConstructor
-@Tag(name = "Rastreamento", description = "Endpoints para gerenciamento de rastreadores")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Rastreadores", description = "API para gerenciamento de rastreadores")
 public class RastreadorController {
-
-    private final ServicoLocalizacao servicoLocalizacao;
-
-    @Operation(summary = "Buscar localização atual", description = "Retorna a localização atual de um rastreador específico")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Localização encontrada",
-                content = @Content(schema = @Schema(implementation = DadosLocalizacao.class))),
-        @ApiResponse(responseCode = "404", description = "Rastreador não encontrado"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-    @GetMapping("/{imei}/localizacao")
-    public ResponseEntity<DadosLocalizacao> buscarLocalizacaoAtual(
-            @Parameter(description = "IMEI do rastreador", required = true)
-            @PathVariable String imei) {
-        DadosLocalizacao localizacao = servicoLocalizacao.buscarLocalizacaoAtual(imei);
-        return ResponseEntity.ok(localizacao);
+    
+    private final RastreadorService rastreadorService;
+    
+    @PostMapping
+    @Operation(summary = "Cadastrar novo rastreador")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RastreadorDTO> cadastrar(@Valid @RequestBody RastreadorDTO dto) {
+        return ResponseEntity.ok(rastreadorService.cadastrar(dto));
     }
-
-    @Operation(summary = "Buscar histórico de localizações", description = "Retorna o histórico de localizações de um rastreador")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Histórico encontrado"),
-        @ApiResponse(responseCode = "404", description = "Rastreador não encontrado"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-    @GetMapping("/{imei}/historico")
-    public ResponseEntity<List<DadosLocalizacao>> buscarHistorico(
-            @Parameter(description = "IMEI do rastreador", required = true)
-            @PathVariable String imei,
-            @Parameter(description = "Quantidade de registros a retornar", example = "10")
-            @RequestParam(defaultValue = "10") int quantidade) {
-        List<DadosLocalizacao> historico = servicoLocalizacao.buscarHistorico(imei, quantidade);
-        return ResponseEntity.ok(historico);
+    
+    @GetMapping
+    @Operation(summary = "Listar todos os rastreadores")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USUARIO')")
+    public ResponseEntity<List<RastreadorDTO>> listarTodos() {
+        return ResponseEntity.ok(rastreadorService.listarTodos());
     }
-
-    @Operation(summary = "Iniciar rastreamento", description = "Inicia o rastreamento de um veículo")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Rastreamento iniciado com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Rastreador não encontrado"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-    @PostMapping("/{imei}/rastrear")
-    public ResponseEntity<Void> iniciarRastreamento(
-            @Parameter(description = "IMEI do rastreador", required = true)
-            @PathVariable String imei) {
-        servicoLocalizacao.iniciarRastreamento(imei);
+    
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar rastreador por ID")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USUARIO')")
+    public ResponseEntity<RastreadorDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(rastreadorService.buscarPorId(id));
+    }
+    
+    @GetMapping("/imei/{imei}")
+    @Operation(summary = "Buscar rastreador por IMEI")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USUARIO')")
+    public ResponseEntity<RastreadorDTO> buscarPorImei(@PathVariable String imei) {
+        return ResponseEntity.ok(rastreadorService.buscarPorImei(imei));
+    }
+    
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar rastreador")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RastreadorDTO> atualizar(@PathVariable Long id, @Valid @RequestBody RastreadorDTO dto) {
+        return ResponseEntity.ok(rastreadorService.atualizar(id, dto));
+    }
+    
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir rastreador")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        rastreadorService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/{id}/desvincular")
+    @Operation(summary = "Desvincular rastreador do veículo")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> desvincularVeiculo(@PathVariable Long id) {
+        rastreadorService.desvincularVeiculo(id);
         return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Parar rastreamento", description = "Para o rastreamento de um veículo")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Rastreamento parado com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Rastreador não encontrado"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-    @DeleteMapping("/{imei}/rastrear")
-    public ResponseEntity<Void> pararRastreamento(
-            @Parameter(description = "IMEI do rastreador", required = true)
-            @PathVariable String imei) {
-        servicoLocalizacao.pararRastreamento(imei);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Listar veículos rastreados", description = "Retorna a lista de IMEIs dos veículos sendo rastreados")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-    @GetMapping("/rastreando")
-    public ResponseEntity<Set<String>> listarVeiculosRastreados() {
-        return ResponseEntity.ok(servicoLocalizacao.listarVeiculosRastreados());
     }
 } 
