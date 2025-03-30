@@ -7,8 +7,11 @@ import com.rastreamento.exception.EmailJaCadastradoException;
 import com.rastreamento.mapper.UsuarioMapper;
 import com.rastreamento.model.Usuario;
 import com.rastreamento.repository.UsuarioRepository;
+import com.rastreamento.repository.UsuarioSpecification;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,14 +45,22 @@ public class UsuarioService {
 
     @Transactional(readOnly = true)
     public Page<UsuarioRespostaDTO> buscar(UsuarioFiltroDTO filtro, Pageable pageable) {
-        Page<Usuario> usuarios = usuarioRepository.buscarComFiltros(
-            filtro.getNome(),
-            filtro.getEmail(),
-            filtro.getRole(),
-            filtro.getAtivo(),
-            pageable
-        );
+        Specification<Usuario> spec = Specification.where(null);
         
-        return usuarios.map(usuarioMapper::toRespostaDTO);
+        if (filtro.getNome() != null) {
+            spec = spec.and(UsuarioSpecification.comNome(filtro.getNome()));
+        }
+        if (filtro.getEmail() != null) {
+            spec = spec.and(UsuarioSpecification.comEmail(filtro.getEmail()));
+        }
+        if (filtro.getRole() != null) {
+            spec = spec.and(UsuarioSpecification.comRole(filtro.getRole().name()));
+        }
+        if (filtro.getAtivo() != null) {
+            spec = spec.and(UsuarioSpecification.comAtivo(filtro.getAtivo()));
+        }
+
+        return usuarioRepository.findAll(spec, pageable)
+            .map(usuarioMapper::toRespostaDTO);
     }
 } 
