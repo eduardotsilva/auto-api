@@ -2,7 +2,7 @@ package com.rastreamento.service;
 
 import com.rastreamento.dto.RastreadorDTO;
 import com.rastreamento.exception.RastreadorJaCadastradoException;
-import com.rastreamento.mapper.RastreadorMapper;
+import com.rastreamento.converter.RastreadorConverter;
 import com.rastreamento.model.Rastreador;
 import com.rastreamento.model.Veiculo;
 import com.rastreamento.repository.RastreadorRepository;
@@ -21,7 +21,7 @@ public class RastreadorService {
     
     private final RastreadorRepository rastreadorRepository;
     private final VeiculoRepository veiculoRepository;
-    private final RastreadorMapper rastreadorMapper;
+    private final RastreadorConverter rastreadorConverter;
     
     @Transactional
     public RastreadorDTO cadastrar(RastreadorDTO dto) {
@@ -32,7 +32,7 @@ public class RastreadorService {
             throw new RastreadorJaCadastradoException("Número já cadastrado");
         }
         
-        Rastreador rastreador = rastreadorMapper.toEntity(dto);
+        Rastreador rastreador = rastreadorConverter.toEntity(dto);
         
         if (dto.getVeiculoId() != null) {
             Veiculo veiculo = veiculoRepository.findById(dto.getVeiculoId())
@@ -48,27 +48,27 @@ public class RastreadorService {
         }
         
         rastreador = rastreadorRepository.save(rastreador);
-        return rastreadorMapper.toDTO(rastreador);
+        return rastreadorConverter.toDTO(rastreador);
     }
     
     @Transactional(readOnly = true)
     public List<RastreadorDTO> listarTodos() {
         return rastreadorRepository.findAll().stream()
-                .map(rastreadorMapper::toDTO)
+                .map(rastreadorConverter::toDTO)
                 .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
     public RastreadorDTO buscarPorId(Long id) {
         return rastreadorRepository.findById(id)
-                .map(rastreadorMapper::toDTO)
+                .map(rastreadorConverter::toDTO)
                 .orElseThrow(() -> new RuntimeException("Rastreador não encontrado"));
     }
     
     @Transactional(readOnly = true)
     public RastreadorDTO buscarPorImei(String imei) {
         return rastreadorRepository.findByImei(imei)
-                .map(rastreadorMapper::toDTO)
+                .map(rastreadorConverter::toDTO)
                 .orElseThrow(() -> new RuntimeException("Rastreador não encontrado"));
     }
     
@@ -111,7 +111,7 @@ public class RastreadorService {
         rastreador.setAtivo(dto.isAtivo());
         
         rastreador = rastreadorRepository.save(rastreador);
-        return rastreadorMapper.toDTO(rastreador);
+        return rastreadorConverter.toDTO(rastreador);
     }
     
     @Transactional

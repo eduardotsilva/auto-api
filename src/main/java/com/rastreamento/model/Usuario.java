@@ -45,12 +45,7 @@ public class Usuario implements UserDetails {
     @Column(name = "ultimo_acesso")
     private LocalDateTime ultimoAcesso;
     
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "usuario_veiculo",
-        joinColumns = @JoinColumn(name = "usuario_id"),
-        inverseJoinColumns = @JoinColumn(name = "veiculo_id")
-    )
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
     private Set<Veiculo> veiculos = new HashSet<>();
     
     @PrePersist

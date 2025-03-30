@@ -12,10 +12,7 @@ public class Veiculo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(nullable = false, unique = true)
-    private String imei;
-    
+       
     @Column(nullable = false)
     private String placa;
     
@@ -37,6 +34,10 @@ public class Veiculo {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rastreador_id")
     private Rastreador rastreador;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

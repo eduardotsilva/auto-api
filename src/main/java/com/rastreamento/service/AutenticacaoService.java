@@ -6,7 +6,7 @@ import com.rastreamento.dto.UsuarioDTO;
 import com.rastreamento.dto.UsuarioRespostaDTO;
 import com.rastreamento.exception.CredenciaisInvalidasException;
 import com.rastreamento.exception.EmailJaCadastradoException;
-import com.rastreamento.mapper.UsuarioMapper;
+import com.rastreamento.converter.UsuarioConverter;
 import com.rastreamento.model.Usuario;
 import com.rastreamento.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -30,18 +30,18 @@ public class AutenticacaoService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UsuarioMapper usuarioMapper;
+    private final UsuarioConverter usuarioConverter;
 
     public AutenticacaoService(UsuarioRepository usuarioRepository,
                              PasswordEncoder passwordEncoder,
                              JwtService jwtService,
                              AuthenticationManager authenticationManager,
-                             UsuarioMapper usuarioMapper) {
+                             UsuarioConverter usuarioConverter) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
-        this.usuarioMapper = usuarioMapper;
+        this.usuarioConverter = usuarioConverter;
     }
 
     public TokenDTO autenticar(LoginDTO loginDTO) {
@@ -79,7 +79,7 @@ public class AutenticacaoService {
         }
 
         try {
-            Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
+            Usuario usuario = usuarioConverter.toEntity(usuarioDTO);
             usuario.setSenha(passwordEncoder.encode(usuarioDTO.getSenha()));
             usuario.setRole(usuarioDTO.getRole());
             usuario.setDataCriacao(LocalDateTime.now());
@@ -87,7 +87,7 @@ public class AutenticacaoService {
             
             Usuario usuarioSalvo = usuarioRepository.save(usuario);
             log.info("Usuário criado com sucesso: {}", usuarioDTO.getEmail());
-            return usuarioMapper.toRespostaDTO(usuarioSalvo);
+            return usuarioConverter.toRespostaDTO(usuarioSalvo);
         } catch (Exception e) {
             log.error("Erro ao criar usuário com email: {}", usuarioDTO.getEmail(), e);
             throw new RuntimeException("Erro ao criar usuário");

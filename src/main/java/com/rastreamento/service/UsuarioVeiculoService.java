@@ -1,7 +1,7 @@
 package com.rastreamento.service;
 
 import com.rastreamento.dto.VeiculoDTO;
-import com.rastreamento.mapper.VeiculoMapper;
+import com.rastreamento.converter.VeiculoConverter;
 import com.rastreamento.model.Usuario;
 import com.rastreamento.model.Veiculo;
 import com.rastreamento.repository.UsuarioRepository;
@@ -19,7 +19,7 @@ public class UsuarioVeiculoService {
     
     private final UsuarioRepository usuarioRepository;
     private final VeiculoRepository veiculoRepository;
-    private final VeiculoMapper veiculoMapper;
+    private final VeiculoConverter veiculoConverter;
     
     @Transactional(readOnly = true)
     public List<VeiculoDTO> listarVeiculosDoUsuario(Long usuarioId) {
@@ -27,7 +27,7 @@ public class UsuarioVeiculoService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
         return usuario.getVeiculos().stream()
-                .map(veiculoMapper::toDTO)
+                .map(veiculoConverter::toDTO)
                 .collect(Collectors.toList());
     }
     

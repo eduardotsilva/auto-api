@@ -2,10 +2,12 @@ package com.rastreamento.service;
 
 import com.rastreamento.dto.VeiculoDTO;
 import com.rastreamento.exception.VeiculoJaCadastradoException;
-import com.rastreamento.mapper.VeiculoMapper;
+import com.rastreamento.converter.VeiculoConverter;
 import com.rastreamento.model.Veiculo;
 import com.rastreamento.repository.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +19,11 @@ import java.util.stream.Collectors;
 public class VeiculoService {
     
     private final VeiculoRepository veiculoRepository;
-    private final VeiculoMapper veiculoMapper;
+    private final VeiculoConverter veiculoConverter;
     
     @Transactional
     public VeiculoDTO cadastrar(VeiculoDTO dto) {
-        if (veiculoRepository.existsByImei(dto.getImei())) {
-            throw new VeiculoJaCadastradoException("IMEI já cadastrado");
-        }
+       
         if (veiculoRepository.existsByPlaca(dto.getPlaca())) {
             throw new VeiculoJaCadastradoException("Placa já cadastrada");
         }
@@ -31,29 +31,22 @@ public class VeiculoService {
             throw new VeiculoJaCadastradoException("Chassi já cadastrado");
         }
         
-        Veiculo veiculo = veiculoMapper.toEntity(dto);
+        Veiculo veiculo = veiculoConverter.toEntity(dto);
         veiculo = veiculoRepository.save(veiculo);
-        return veiculoMapper.toDTO(veiculo);
+        return veiculoConverter.toDTO(veiculo);
     }
     
     @Transactional(readOnly = true)
     public List<VeiculoDTO> listarTodos() {
         return veiculoRepository.findAll().stream()
-                .map(veiculoMapper::toDTO)
+                .map(veiculoConverter::toDTO)
                 .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
     public VeiculoDTO buscarPorId(Long id) {
         return veiculoRepository.findById(id)
-                .map(veiculoMapper::toDTO)
-                .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
-    }
-    
-    @Transactional(readOnly = true)
-    public VeiculoDTO buscarPorImei(String imei) {
-        return veiculoRepository.findByImei(imei)
-                .map(veiculoMapper::toDTO)
+                .map(veiculoConverter::toDTO)
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
     }
     
@@ -61,10 +54,7 @@ public class VeiculoService {
     public VeiculoDTO atualizar(Long id, VeiculoDTO dto) {
         Veiculo veiculo = veiculoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado"));
-        
-        if (!veiculo.getImei().equals(dto.getImei()) && veiculoRepository.existsByImei(dto.getImei())) {
-            throw new VeiculoJaCadastradoException("IMEI já cadastrado");
-        }
+       
         if (!veiculo.getPlaca().equals(dto.getPlaca()) && veiculoRepository.existsByPlaca(dto.getPlaca())) {
             throw new VeiculoJaCadastradoException("Placa já cadastrada");
         }
@@ -72,7 +62,6 @@ public class VeiculoService {
             throw new VeiculoJaCadastradoException("Chassi já cadastrado");
         }
         
-        veiculo.setImei(dto.getImei());
         veiculo.setPlaca(dto.getPlaca());
         veiculo.setModelo(dto.getModelo());
         veiculo.setMarca(dto.getMarca());
@@ -82,7 +71,7 @@ public class VeiculoService {
         veiculo.setAtivo(dto.isAtivo());
         
         veiculo = veiculoRepository.save(veiculo);
-        return veiculoMapper.toDTO(veiculo);
+        return veiculoConverter.toDTO(veiculo);
     }
     
     @Transactional
@@ -91,5 +80,16 @@ public class VeiculoService {
             throw new RuntimeException("Veículo não encontrado");
         }
         veiculoRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Page<VeiculoDTO> listar(Long usuarioId, Pageable pageable) {
+        if (usuarioId != null) {
+            return veiculoRepository.findByUsuarioId(usuarioId, pageable)
+                    .map(veiculoConverter::toDTO);
+        }
+        
+        return veiculoRepository.findAll(pageable)
+                .map(veiculoConverter::toDTO);
     }
 } 

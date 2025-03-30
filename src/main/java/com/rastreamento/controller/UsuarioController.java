@@ -3,6 +3,7 @@ package com.rastreamento.controller;
 import com.rastreamento.dto.UsuarioDTO;
 import com.rastreamento.dto.UsuarioFiltroDTO;
 import com.rastreamento.dto.UsuarioRespostaDTO;
+import com.rastreamento.dto.VinculoVeiculoDTO;
 import com.rastreamento.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,5 +39,12 @@ public class UsuarioController {
             UsuarioFiltroDTO filtro,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(usuarioService.buscar(filtro, pageable));
+    }
+
+    @PostMapping("/vincular-veiculo")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<Void> vincularVeiculo(@RequestBody @Valid VinculoVeiculoDTO vinculoDTO) {
+        usuarioService.vincularVeiculo(vinculoDTO);
+        return ResponseEntity.ok().build();
     }
 } 
