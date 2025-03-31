@@ -45,7 +45,6 @@ public class VeiculoConverter {
         
         if (veiculo.getRastreador() != null) {
             dto.setRastreadorId(veiculo.getRastreador().getId());
-            dto.setImei(veiculo.getRastreador().getImei());
         }
         
         dto.setSituacao(veiculo.getSituacao());

@@ -14,12 +14,7 @@ public class VeiculoDTO {
     
     @Schema(description = "ID do veículo", example = "1")
     private Long id;
-    
-    @NotBlank(message = "O IMEI é obrigatório")
-    @Pattern(regexp = "^[A-Z0-9]{15}$", message = "IMEI deve conter 15 caracteres alfanuméricos")
-    @Schema(description = "IMEI do dispositivo de rastreamento", example = "VEICULO1", required = true)
-    private String imei;
-    
+        
     @NotBlank(message = "A placa é obrigatória")
     @Pattern(regexp = "^[A-Z]{3}[0-9][0-9A-Z][0-9]{2}$", message = "Placa inválida")
     @Schema(description = "Placa do veículo", example = "ABC1234", required = true)

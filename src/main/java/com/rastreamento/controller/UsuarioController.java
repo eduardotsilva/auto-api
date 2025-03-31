@@ -47,4 +47,12 @@ public class UsuarioController {
         usuarioService.vincularVeiculo(vinculoDTO);
         return ResponseEntity.ok().build();
     }
+    
+    @DeleteMapping("/excluir/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> excluirUsuario(@PathVariable Long id) {
+        usuarioService.excluirUsuario(id);
+        return ResponseEntity.noContent().build(); 
+    }
+
 } 

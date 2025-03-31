@@ -116,4 +116,9 @@ public class UsuarioService {
         // Salvar o veículo
         veiculoRepository.save(veiculo);
     }
+    
+    @Transactional
+    public void excluirUsuario(Long id) {
+    	usuarioRepository.deleteById(id);
+    }
 } 
