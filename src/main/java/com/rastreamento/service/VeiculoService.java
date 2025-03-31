@@ -3,7 +3,9 @@ package com.rastreamento.service;
 import com.rastreamento.dto.VeiculoDTO;
 import com.rastreamento.exception.VeiculoJaCadastradoException;
 import com.rastreamento.converter.VeiculoConverter;
+import com.rastreamento.model.Rastreador;
 import com.rastreamento.model.Veiculo;
+import com.rastreamento.repository.RastreadorRepository;
 import com.rastreamento.repository.VeiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 public class VeiculoService {
     
     private final VeiculoRepository veiculoRepository;
+    private final RastreadorRepository rastreadorRepository;
     private final VeiculoConverter veiculoConverter;
     
     @Transactional
@@ -62,6 +66,14 @@ public class VeiculoService {
             throw new VeiculoJaCadastradoException("Chassi já cadastrado");
         }
         
+        if(dto.getRastreadorId() != null) {
+        	Optional<Rastreador> rastreador = rastreadorRepository.findById(dto.getRastreadorId());
+        	if(rastreador.isPresent()) {
+        		veiculo.setRastreador(rastreador.get());
+        	}
+        }
+        
+        
         veiculo.setPlaca(dto.getPlaca());
         veiculo.setModelo(dto.getModelo());
         veiculo.setMarca(dto.getMarca());
@@ -69,7 +81,6 @@ public class VeiculoService {
         veiculo.setAno(dto.getAno());
         veiculo.setChassi(dto.getChassi());
         veiculo.setAtivo(dto.isAtivo());
-        
         veiculo = veiculoRepository.save(veiculo);
         return veiculoConverter.toDTO(veiculo);
     }
