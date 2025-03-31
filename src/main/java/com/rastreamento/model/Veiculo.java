@@ -32,15 +32,14 @@ public class Veiculo {
     private String chassi;
     
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rastreador_id")
+    @JoinColumn(name = "rastreador_id", nullable = true)
     private Rastreador rastreador;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "usuario_id", nullable = true)
     private Usuario usuario;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private SituacaoVeiculo situacao = SituacaoVeiculo.DESLIGADO;
     
     @Column(nullable = false)
@@ -66,6 +65,8 @@ public class Veiculo {
     
     @PrePersist
     protected void onCreate() {
+    	ativo = true;
+    	situacao = SituacaoVeiculo.DESLIGADO;
         dataCriacao = LocalDateTime.now();
         ultimaAtualizacao = LocalDateTime.now();
     }
