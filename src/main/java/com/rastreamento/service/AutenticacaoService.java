@@ -10,7 +10,6 @@ import com.rastreamento.mapper.UsuarioMapper;
 import com.rastreamento.model.Usuario;
 import com.rastreamento.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

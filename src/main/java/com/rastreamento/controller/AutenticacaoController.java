@@ -4,7 +4,6 @@ import com.rastreamento.dto.LoginDTO;
 import com.rastreamento.dto.TokenDTO;
 import com.rastreamento.dto.UsuarioDTO;
 import com.rastreamento.dto.UsuarioRespostaDTO;
-import com.rastreamento.model.Usuario;
 import com.rastreamento.service.AutenticacaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

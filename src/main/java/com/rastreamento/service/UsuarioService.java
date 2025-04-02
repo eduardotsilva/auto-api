@@ -8,7 +8,6 @@ import com.rastreamento.mapper.UsuarioMapper;
 import com.rastreamento.model.Usuario;
 import com.rastreamento.repository.UsuarioRepository;
 import com.rastreamento.repository.UsuarioSpecification;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;

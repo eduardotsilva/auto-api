@@ -1,0 +1,47 @@
+{
+    "rules": {
+        "yaml": {
+            "ignoreWarnings": [
+                "YAML_SHOULD_ESCAPE",
+                "YAML_SHOULD_QUOTE",
+                "YAML_SHOULD_INDENT"
+            ]
+        },
+        "java": {
+            "ignoreWarnings": [
+                "unused-import",
+                "deprecation",
+                "unused-variable",
+                "unused-method",
+                "unused-field",
+                "unused-parameter",
+                "unused-constructor",
+                "unused-class",
+                "unused-interface",
+                "unused-enum",
+                "unused-annotation",
+                "unused-package",
+                "unused-module",
+                "unused-constant",
+                "unused-constructor-parameter",
+                "unused-method-parameter",
+                "unused-field-parameter",
+                "unused-local-variable",
+                "unused-private-field",
+                "unused-private-method",
+                "unused-private-constructor",
+                "unused-private-class",
+                "unused-private-interface",
+                "unused-private-enum",
+                "unused-private-annotation",
+                "unused-private-package",
+                "unused-private-module",
+                "unused-private-constant",
+                "unused-private-constructor-parameter",
+                "unused-private-method-parameter",
+                "unused-private-field-parameter",
+                "unused-private-local-variable"
+            ]
+        }
+    }
+} 
