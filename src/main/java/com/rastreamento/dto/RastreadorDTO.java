@@ -15,7 +15,6 @@ public class RastreadorDTO {
 
     private Long id;
 
-    @NotBlank(message = "O IMEI é obrigatório")
     private String imei;
 
     @NotBlank(message = "O número é obrigatório")
